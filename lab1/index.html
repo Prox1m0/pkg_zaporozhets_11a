@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Интерактивный конвертер цветов (Вариант 9)</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="app-container">
+        <header>
+            <h1>Цветовой конвертер</h1>
+            <p class="subtitle">Лабораторная работа №1 (Вариант 9: HSV ⇄ XYZ ⇄ LAB)</p>
+        </header>
+        
+        <div class="settings-panel">
+            <div class="setting-item">
+                <label for="whiteStandard">Стандарт освещения:</label>
+                <select id="whiteStandard">
+                    <option value="D65">D65 (Дневной свет)</option>
+                    <option value="D50">D50 (Полиграфия)</option>
+                    <option value="E">E (Равноэнергетический)</option>
+                </select>
+            </div>
+            <div class="setting-item">
+                <label for="strategy">Стратегия охвата:</label>
+                <select id="strategy">
+                    <option value="clipping">Clipping (Обрезание)</option>
+                    <option value="scaling">Scaling (Масштабирование)</option>
+                </select>
+            </div>
+            <div class="setting-item">
+                <label for="colorPicker">Палитра цветов:</label>
+                <input type="color" id="colorPicker" value="#4f46e5" style="cursor: pointer; height: 32px; border: none; background: none;">
+            </div>
+            <div class="setting-item">
+                <label>Авто-тесты:</label>
+                <button id="runTestsBtn" class="test-btn">Запустить тесты</button>
+            </div>
+        </div>
+
+        <div id="warningBox" class="warning hidden">⚠️ Внимание: цвет вышел за границы диапазона модели!</div>
+
+        <div class="models-grid">
+            
+            <div class="model-card" data-model="hsv">
+                <h2>HSV</h2>
+                <div class="control-group">
+                    <div class="label-val"><span>H (Тон)</span><input type="number" id="hsv-h-num" min="0" max="360"></div>
+                    <input type="range" id="hsv-h-range" min="0" max="360">
+                </div>
+                <div class="control-group">
+                    <div class="label-val"><span>S (Насыщенность)</span><input type="number" id="hsv-s-num" min="0" max="100"></div>
+                    <input type="range" id="hsv-s-range" min="0" max="100">
+                </div>
+                <div class="control-group">
+                    <div class="label-val"><span>V (Яркость)</span><input type="number" id="hsv-v-num" min="0" max="100"></div>
+                    <input type="range" id="hsv-v-range" min="0" max="100">
+                </div>
+            </div>
+
+            <div class="model-card" data-model="xyz">
+                <h2>XYZ</h2>
+                <div class="control-group">
+                    <div class="label-val"><span>X</span><input type="number" id="xyz-x-num" step="0.1"></div>
+                    <input type="range" id="xyz-x-range" max="100" step="0.1">
+                </div>
+                <div class="control-group">
+                    <div class="label-val"><span>Y</span><input type="number" id="xyz-y-num" step="0.1"></div>
+                    <input type="range" id="xyz-y-range" max="100" step="0.1">
+                </div>
+                <div class="control-group">
+                    <div class="label-val"><span>Z</span><input type="number" id="xyz-z-num" step="0.1"></div>
+                    <input type="range" id="xyz-z-range" max="100" step="0.1">
+                </div>
+            </div>
+
+            <div class="model-card" data-model="lab">
+                <h2>LAB</h2>
+                <div class="control-group">
+                    <div class="label-val"><span>L*</span><input type="number" id="lab-l-num" min="0" max="100"></div>
+                    <input type="range" id="lab-l-range" min="0" max="100">
+                </div>
+                <div class="control-group">
+                    <div class="label-val"><span>a*</span><input type="number" id="lab-a-num" min="-128" max="127"></div>
+                    <input type="range" id="lab-a-range" min="-128" max="127">
+                </div>
+                <div class="control-group">
+                    <div class="label-val"><span>b*</span><input type="number" id="lab-b-num" min="-128" max="127"></div>
+                    <input type="range" id="lab-b-range" min="-128" max="127">
+                </div>
+            </div>
+
+        </div>
+
+        <div id="colorPreview" class="color-preview">
+            <span id="colorHexText">#FFFFFF</span>
+        </div>
+    </div>
+
+    <script src="model.js"></script>
+    <script src="view.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
