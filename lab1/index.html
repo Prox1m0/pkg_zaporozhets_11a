@@ -3,100 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Интерактивный конвертер цветов (Вариант 9)</title>
+    <title>Интерактивный конвертер цветов — Вариант 9 (HSV ⇄ XYZ ⇄ LAB)</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
     <div class="app-container">
-        <header>
-            <h1>Цветовой конвертер</h1>
-            <p class="subtitle">Лабораторная работа №1 (Вариант 9: HSV ⇄ XYZ ⇄ LAB)</p>
+        <header class="app-header">
+            <h1>Интерактивный конвертер цветов</h1>
+            <p class="subtitle">Вариант 9: <code>HSV ⇄ XYZ ⇄ LAB</code></p>
         </header>
-        
-        <div class="settings-panel">
+
+        <section class="settings-panel">
             <div class="setting-item">
                 <label for="whiteStandard">Стандарт освещения:</label>
                 <select id="whiteStandard">
-                    <option value="D65">D65 (Дневной свет)</option>
-                    <option value="D50">D50 (Полиграфия)</option>
-                    <option value="E">E (Равноэнергетический)</option>
+                    <option value="D65" selected>D65 (Средний дневной свет — sRGB)</option>
+                    <option value="D50">D50 (Теплый дневной свет — Полиграфия)</option>
+                    <option value="E">E (Равноэнергетический источник)</option>
                 </select>
             </div>
+
             <div class="setting-item">
-                <label for="strategy">Стратегия охвата:</label>
+                <label for="strategy">Стратегия выхода за gamut:</label>
                 <select id="strategy">
-                    <option value="clipping">Clipping (Обрезание)</option>
+                    <option value="clipping" selected>Clipping (Обрезание до 0..255)</option>
                     <option value="scaling">Scaling (Масштабирование)</option>
                 </select>
             </div>
+
             <div class="setting-item">
-                <label for="colorPicker">Палитра цветов:</label>
-                <input type="color" id="colorPicker" value="#4f46e5" style="cursor: pointer; height: 32px; border: none; background: none;">
+                <label for="colorPicker">Палитра:</label>
+                <input type="color" id="colorPicker" value="#4f46e5">
             </div>
-            <div class="setting-item">
-                <label>Авто-тесты:</label>
-                <button id="runTestsBtn" class="test-btn">Запустить тесты</button>
+
+            <div class="setting-item button-item">
+                <button id="runTestsBtn" class="btn">Запустить микро-тесты</button>
             </div>
+        </section>
+
+        <!-- Warning message box -->
+        <div id="warningBox" class="warning-box hidden">
+            <span class="warning-icon">⚠️</span>
+            <span id="warningMessage">Внимание: произошел выход за рамки цветового охвата sRGB! Применена коррекция.</span>
         </div>
 
-        <div id="warningBox" class="warning hidden">⚠️ Внимание: цвет вышел за границы диапазона модели!</div>
+        <main class="main-layout">
+            <div class="models-grid">
+                <!-- HSV Card -->
+                <div class="model-card" id="card-hsv">
+                    <h2>HSV (Hue, Saturation, Value)</h2>
+                    <div class="control-group">
+                        <div class="input-header">
+                            <label for="input-h">H (Оттенок 0-360°)</label>
+                            <input type="number" id="input-h" min="0" max="360" step="1" value="243">
+                        </div>
+                        <input type="range" id="slider-h" min="0" max="360" step="1" value="243">
+                    </div>
+                    <div class="control-group">
+                        <div class="input-header">
+                            <label for="input-s">S (Насыщенность 0-100%)</label>
+                            <input type="number" id="input-s" min="0" max="100" step="1" value="70">
+                        </div>
+                        <input type="range" id="slider-s" min="0" max="100" step="1" value="70">
+                    </div>
+                    <div class="control-group">
+                        <div class="input-header">
+                            <label for="input-v">V (Яркость 0-100%)</label>
+                            <input type="number" id="input-v" min="0" max="100" step="1" value="90">
+                        </div>
+                        <input type="range" id="slider-v" min="0" max="100" step="1" value="90">
+                    </div>
+                </div>
 
-        <div class="models-grid">
-            
-            <div class="model-card" data-model="hsv">
-                <h2>HSV</h2>
-                <div class="control-group">
-                    <div class="label-val"><span>H (Тон)</span><input type="number" id="hsv-h-num" min="0" max="360"></div>
-                    <input type="range" id="hsv-h-range" min="0" max="360">
+                <!-- XYZ Card -->
+                <div class="model-card" id="card-xyz">
+                    <h2>XYZ (CIE 1931)</h2>
+                    <div class="control-group">
+                        <div class="input-header">
+                            <label for="input-x">X (0 - 95+)</label>
+                            <input type="number" id="input-x" min="0" max="100" step="0.1" value="15.8">
+                        </div>
+                        <input type="range" id="slider-x" min="0" max="100" step="0.1" value="15.8">
+                    </div>
+                    <div class="control-group">
+                        <div class="input-header">
+                            <label for="input-y">Y (0 - 100)</label>
+                            <input type="number" id="input-y" min="0" max="100" step="0.1" value="9.4">
+                        </div>
+                        <input type="range" id="slider-y" min="0" max="100" step="0.1" value="9.4">
+                    </div>
+                    <div class="control-group">
+                        <div class="input-header">
+                            <label for="input-z">Z (0 - 108+)</label>
+                            <input type="number" id="input-z" min="0" max="120" step="0.1" value="82.4">
+                        </div>
+                        <input type="range" id="slider-z" min="0" max="120" step="0.1" value="82.4">
+                    </div>
                 </div>
-                <div class="control-group">
-                    <div class="label-val"><span>S (Насыщенность)</span><input type="number" id="hsv-s-num" min="0" max="100"></div>
-                    <input type="range" id="hsv-s-range" min="0" max="100">
-                </div>
-                <div class="control-group">
-                    <div class="label-val"><span>V (Яркость)</span><input type="number" id="hsv-v-num" min="0" max="100"></div>
-                    <input type="range" id="hsv-v-range" min="0" max="100">
+
+                <!-- LAB Card -->
+                <div class="model-card" id="card-lab">
+                    <h2>LAB (CIE 1976 L*a*b*)</h2>
+                    <div class="control-group">
+                        <div class="input-header">
+                            <label for="input-l">L* (Светлота 0-100)</label>
+                            <input type="number" id="input-l" min="0" max="100" step="0.1" value="36.7">
+                        </div>
+                        <input type="range" id="slider-l" min="0" max="100" step="0.1" value="36.7">
+                    </div>
+                    <div class="control-group">
+                        <div class="input-header">
+                            <label for="input-a">a* (-128 ... +127)</label>
+                            <input type="number" id="input-a" min="-128" max="127" step="0.1" value="45.2">
+                        </div>
+                        <input type="range" id="slider-a" min="-128" max="127" step="0.1" value="45.2">
+                    </div>
+                    <div class="control-group">
+                        <div class="input-header">
+                            <label for="input-b">b* (-128 ... +127)</label>
+                            <input type="number" id="input-b" min="-128" max="127" step="0.1" value="-71.8">
+                        </div>
+                        <input type="range" id="slider-b" min="-128" max="127" step="0.1" value="-71.8">
+                    </div>
                 </div>
             </div>
 
-            <div class="model-card" data-model="xyz">
-                <h2>XYZ</h2>
-                <div class="control-group">
-                    <div class="label-val"><span>X</span><input type="number" id="xyz-x-num" step="0.1"></div>
-                    <input type="range" id="xyz-x-range" max="100" step="0.1">
+            <!-- Side Visual Panel: CIE Chromaticity Diagram & Color Preview -->
+            <aside class="visual-panel">
+                <div class="preview-box">
+                    <h3>Предпросмотр цвета</h3>
+                    <div id="colorDisplay" class="color-display">
+                        <span id="colorHexText">#4F46E5</span>
+                    </div>
+                    <div class="rgb-info" id="rgbInfoText">RGB: (79, 70, 229)</div>
                 </div>
-                <div class="control-group">
-                    <div class="label-val"><span>Y</span><input type="number" id="xyz-y-num" step="0.1"></div>
-                    <input type="range" id="xyz-y-range" max="100" step="0.1">
-                </div>
-                <div class="control-group">
-                    <div class="label-val"><span>Z</span><input type="number" id="xyz-z-num" step="0.1"></div>
-                    <input type="range" id="xyz-z-range" max="100" step="0.1">
-                </div>
-            </div>
 
-            <div class="model-card" data-model="lab">
-                <h2>LAB</h2>
-                <div class="control-group">
-                    <div class="label-val"><span>L*</span><input type="number" id="lab-l-num" min="0" max="100"></div>
-                    <input type="range" id="lab-l-range" min="0" max="100">
+                <div class="cie-box">
+                    <h3>Цветовой график МКО (CIE 1931 xy)</h3>
+                    <div class="canvas-container">
+                        <canvas id="cieCanvas" width="280" height="300"></canvas>
+                    </div>
+                    <div class="cie-coords" id="cieCoordsText">x: 0.147, y: 0.087</div>
                 </div>
-                <div class="control-group">
-                    <div class="label-val"><span>a*</span><input type="number" id="lab-a-num" min="-128" max="127"></div>
-                    <input type="range" id="lab-a-range" min="-128" max="127">
-                </div>
-                <div class="control-group">
-                    <div class="label-val"><span>b*</span><input type="number" id="lab-b-num" min="-128" max="127"></div>
-                    <input type="range" id="lab-b-range" min="-128" max="127">
-                </div>
-            </div>
-
-        </div>
-
-        <div id="colorPreview" class="color-preview">
-            <span id="colorHexText">#FFFFFF</span>
-        </div>
+            </aside>
+        </main>
     </div>
 
     <script src="model.js"></script>
