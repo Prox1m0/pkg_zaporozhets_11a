@@ -121,7 +121,6 @@ const View = {
         ctx.closePath();
         ctx.stroke();
 
-        // Точка текущего цвета
         const px = x * w;
         const py = (1 - y) * h;
 

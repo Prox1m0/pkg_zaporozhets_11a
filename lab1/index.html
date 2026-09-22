@@ -75,7 +75,6 @@
                     </div>
                 </div>
 
-                <!-- XYZ Card -->
                 <div class="model-card" id="card-xyz">
                     <h2>XYZ (CIE 1931)</h2>
                     <div class="control-group">
@@ -128,16 +127,7 @@
                 </div>
             </div>
 
-            <!-- Side Visual Panel: CIE Chromaticity Diagram & Color Preview -->
             <aside class="visual-panel">
-                <div class="preview-box">
-                    <h3>Предпросмотр цвета</h3>
-                    <div id="colorDisplay" class="color-display">
-                        <span id="colorHexText">#4F46E5</span>
-                    </div>
-                    <div class="rgb-info" id="rgbInfoText">RGB: (79, 70, 229)</div>
-                </div>
-
                 <div class="cie-box">
                     <h3>Цветовой график МКО (CIE 1931 xy)</h3>
                     <div class="canvas-container">
@@ -147,6 +137,16 @@
                 </div>
             </aside>
         </main>
+
+        <section class="bottom-preview-section" style="width: 100%; margin-top: 25px;">
+            <div class="preview-box" style="width: 100%;">
+                <h3>Предпросмотр цвета</h3>
+                <div id="colorDisplay" class="color-display" style="width: 100%; height: 260px; min-height: 260px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; border-radius: 12px; transition: background-color 0.2s ease;">
+                    <span id="colorHexText">#4F46E5</span>
+                </div>
+                <div class="rgb-info" id="rgbInfoText" style="text-align: center; margin-top: 10px; font-weight: bold;">RGB: (79, 70, 229)</div>
+            </div>
+        </section>
     </div>
 
     <script src="model.js"></script>
