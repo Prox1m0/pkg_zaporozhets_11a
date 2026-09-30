@@ -15,25 +15,25 @@ const View = {
         document.getElementById('input-v').value = Math.round(data.hsv.v);
         document.getElementById('slider-v').value = Math.round(data.hsv.v);
 
-        document.getElementById('input-x').value = data.xyz.x.toFixed(1);
-        document.getElementById('slider-x').value = data.xyz.x.toFixed(1);
-        document.getElementById('input-y').value = data.xyz.y.toFixed(1);
-        document.getElementById('slider-y').value = data.xyz.y.toFixed(1);
-        document.getElementById('input-z').value = data.xyz.z.toFixed(1);
-        document.getElementById('slider-z').value = data.xyz.z.toFixed(1);
+        document.getElementById('input-x').value = Math.round(data.xyz.x);
+        document.getElementById('slider-x').value = Math.round(data.xyz.x);
+        document.getElementById('input-y').value = Math.round(data.xyz.y);
+        document.getElementById('slider-y').value = Math.round(data.xyz.y);
+        document.getElementById('input-z').value = Math.round(data.xyz.z);
+        document.getElementById('slider-z').value = Math.round(data.xyz.z);
 
-        document.getElementById('input-l').value = data.lab.l.toFixed(1);
-        document.getElementById('slider-l').value = data.lab.l.toFixed(1);
-        document.getElementById('input-a').value = data.lab.a.toFixed(1);
-        document.getElementById('slider-a').value = data.lab.a.toFixed(1);
-        document.getElementById('input-b').value = data.lab.b.toFixed(1);
-        document.getElementById('slider-b').value = data.lab.b.toFixed(1);
+        document.getElementById('input-l').value = Math.round(data.lab.l);
+        document.getElementById('slider-l').value = Math.round(data.lab.l);
+        document.getElementById('input-a').value = Math.round(data.lab.a);
+        document.getElementById('slider-a').value = Math.round(data.lab.a);
+        document.getElementById('input-b').value = Math.round(data.lab.b);
+        document.getElementById('slider-b').value = Math.round(data.lab.b);
 
-        const hex = this.rgbToHex(data.rgb.r, data.rgb.g, data.rgb.b);
+        const hex = this.formatHex(data.display.r, data.display.g, data.display.b);
         document.getElementById('colorDisplay').style.backgroundColor = hex;
         document.getElementById('colorHexText').innerText = hex.toUpperCase();
         document.getElementById('colorPicker').value = hex;
-        document.getElementById('rgbInfoText').innerText = `RGB: (${data.rgb.r}, ${data.rgb.g}, ${data.rgb.b})`;
+        document.getElementById('rgbInfoText').innerText = `Координаты экрана: (${data.display.r}, ${data.display.g}, ${data.display.b})`;
 
         const warningBox = document.getElementById('warningBox');
         if (data.isOut) {
@@ -42,31 +42,33 @@ const View = {
             warningBox.classList.add('hidden');
         }
 
-        this.updateSliderGradients(data.hsv, data.rgb);
+        this.updateSliderGradients(data.hsv);
 
         this.drawCieDiagram(data.xyz);
     },
 
-    rgbToHex(r, g, b) {
+    formatHex(r, g, b) {
         return "#" + [r, g, b].map(x => {
             const hex = Math.min(255, Math.max(0, x)).toString(16);
             return hex.length === 1 ? "0" + hex : hex;
         }).join("");
     },
 
+    updateSliderGradients(hsv) {
+        const standard = this.getStandard();
+        const strategy = this.getStrategy();
 
-    updateSliderGradients(hsv, rgb) {
         const sliderH = document.getElementById('slider-h');
         sliderH.style.background = 'linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)';
 
         const sliderS = document.getElementById('slider-s');
-        const sMinHex = this.rgbToHex(...Object.values(ColorModel.hsvToRgb(hsv.h, 0, hsv.v)));
-        const sMaxHex = this.rgbToHex(...Object.values(ColorModel.hsvToRgb(hsv.h, 100, hsv.v)));
-        sliderS.style.background = `linear-gradient(to right, ${sMinHex}, ${sMaxHex})`;
+        const sMin = ColorModel.hsvToAll(hsv.h, 0, hsv.v, standard, strategy).display;
+        const sMax = ColorModel.hsvToAll(hsv.h, 100, hsv.v, standard, strategy).display;
+        sliderS.style.background = `linear-gradient(to right, ${this.formatHex(sMin.r, sMin.g, sMin.b)}, ${this.formatHex(sMax.r, sMax.g, sMax.b)})`;
 
         const sliderV = document.getElementById('slider-v');
-        const vMaxHex = this.rgbToHex(...Object.values(ColorModel.hsvToRgb(hsv.h, hsv.s, 100)));
-        sliderV.style.background = `linear-gradient(to right, #000000, ${vMaxHex})`;
+        const vMax = ColorModel.hsvToAll(hsv.h, hsv.s, 100, standard, strategy).display;
+        sliderV.style.background = `linear-gradient(to right, #000000, ${this.formatHex(vMax.r, vMax.g, vMax.b)})`;
 
         const setGradient = (id, color1, color2) => {
             document.getElementById(id).style.background = `linear-gradient(to right, ${color1}, ${color2})`;

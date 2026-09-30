@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const g = parseInt(hex.substring(3, 5), 16);
         const b = parseInt(hex.substring(5, 7), 16);
 
-        const hsv = ColorModel.rgbToHsv(r, g, b);
+        const hsv = ColorModel.displayPixelsToHsv(r, g, b);
         document.getElementById('input-h').value = hsv.h;
         document.getElementById('slider-h').value = hsv.h;
         document.getElementById('input-s').value = hsv.s;
@@ -85,14 +85,14 @@ function runMicroTests() {
         }
     }
 
-    const hsvRed = ColorModel.rgbToHsv(255, 0, 0);
-    assert(hsvRed.h === 0 && hsvRed.s === 100 && hsvRed.v === 100, "RGB(255,0,0) -> HSV(0, 100%, 100%)");
+    const hsvRed = ColorModel.displayPixelsToHsv(255, 0, 0);
+    assert(hsvRed.h === 0 && hsvRed.s === 100 && hsvRed.v === 100, "Display(255,0,0) -> HSV(0, 100%, 100%)");
 
-    const rgbRed = ColorModel.hsvToRgb(0, 100, 100);
-    assert(rgbRed.r === 255 && rgbRed.g === 0 && rgbRed.b === 0, "HSV(0, 100%, 100%) -> RGB(255,0,0)");
+    const displayRed = ColorModel.hsvToAll(0, 100, 100, 'D65', 'clipping').display;
+    assert(displayRed.r === 255 && displayRed.g === 0 && displayRed.b === 0, "HSV(0, 100%, 100%) -> Display(255,0,0)");
 
-    const xyzWhite = ColorModel.rgbToXyz(255, 255, 255, 'D65');
-    assert(Math.abs(xyzWhite.y - 100.0) < 0.1, "RGB(255,255,255) D65 -> Y = 100.0");
+    const xyzWhite = ColorModel.hsvToXyz(0, 0, 100, 'D65');
+    assert(Math.abs(xyzWhite.y - 100.0) < 0.1, "HSV White D65 -> Y = 100.0");
 
     const labWhite = ColorModel.xyzToLab(xyzWhite.x, xyzWhite.y, xyzWhite.z, 'D65');
     assert(Math.abs(labWhite.l - 100.0) < 0.5, "White in LAB -> L* = 100");
