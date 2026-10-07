@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Анализатор графики | Lab 2</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-titles">
+                <h2>Мониторинг метаданных</h2>
+                <p class="subtitle">Многопоточное сканирование директорий (до 100 000 файлов)</p>
+            </div>
+            <label class="btn btn-primary">
+                <input type="file" id="folderInput" webkitdirectory multiple hidden>
+                Выбрать директорию
+            </label>
+        </header>
+
+        <div class="dashboard" id="dashboard">
+            <div class="stat-card">
+                <div class="stat-title">Всего файлов</div>
+                <div class="stat-value" id="statTotal">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Валидные (OK)</div>
+                <div class="stat-value text-success" id="statSuccess">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Битые / Ошибки</div>
+                <div class="stat-value text-error" id="statErrors">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Время выполнения</div>
+                <div class="stat-value" id="statTime">0.00 с</div>
+                <div class="stat-subtext" id="statSpeed">0 ф/сек</div>
+            </div>
+        </div>
+        
+        <div id="progress-wrapper" class="progress-wrapper" style="display: none;">
+            <div class="progress-bar-container">
+                <div id="progressBar" class="progress-bar"></div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table id="resultTable">
+                <thead>
+                    <tr>
+                        <th>Имя файла</th>
+                        <th>Размер (px)</th>
+                        <th>Разрешение (DPI)</th>
+                        <th>Глубина цвета</th>
+                        <th>Сжатие</th>
+                        <th>Статус</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Данные генерируются через JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script src="engine.js"></script>
+</body>
+</html>
