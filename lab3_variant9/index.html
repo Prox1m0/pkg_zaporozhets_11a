@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лабораторная работа №3 — Вариант 9 (Обработка изображений)</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header class="app-header">
+        <div class="header-title">
+            <h1>Лабораторная работа №3 — Вариант 9</h1>
+            <p>Архитектура: <strong>Presentation Layer (UI)</strong> &rarr; <strong>Memory &amp; Pixel Access Layer</strong> &rarr; <strong>Processing Layer</strong></p>
+        </div>
+        <div class="header-badges">
+            <span class="badge">Глобальная (Оцу + ISODATA)</span>
+            <span class="badge">Адаптивная (Интегральное изображение SAT O(1))</span>
+            <span class="badge">Сегментация (Точки, Линии, Собель, Субпиксельный Кэнни)</span>
+        </div>
+    </header>
+
+    <main class="app-container">
+        <!-- Левая панель управления (Presentation Layer Controls) -->
+        <aside class="sidebar">
+            <section class="panel-card">
+                <h2>1. Тестовые изображения</h2>
+                <div class="form-group">
+                    <label for="presetSelect">База изображений по варианту:</label>
+                    <select id="presetSelect">
+                        <option value="shadow_doc">1. Документ с неравномерной тенью (Адаптивный vs Глобальный)</option>
+                        <option value="bimodal_shapes">2. Контрастные фигуры с шумом (Глобальный Оцу vs ISODATA)</option>
+                        <option value="points_lines">3. Тест-мишень: Изолированные точки и линии (0°, 45°, 90°, 135°)</option>
+                        <option value="gradients_rings">4. Перепады яркости и кольца (Собель, углы градиента, Кэнни)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="fileInput" class="file-btn">Загрузить свой файл...</label>
+                    <input type="file" id="fileInput" accept="image/*" hidden>
+                </div>
+            </section>
+
+            <section class="panel-card">
+                <h2>2. Memory &amp; Pixel Access Layer</h2>
+                <div class="form-group">
+                    <label for="paddingSelect">Обработка краев (Edge Padding):</label>
+                    <select id="paddingSelect">
+                        <option value="reflect">Reflect (Зеркальное отражение краев)</option>
+                        <option value="clamp">Clamp (Дублирование граничных пикселей)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="workersRange">Многопоточность (Web Workers): <span id="workersVal">4</span> потока</label>
+                    <input type="range" id="workersRange" min="1" max="8" step="1" value="4">
+                </div>
+            </section>
+
+            <section class="panel-card">
+                <h2>3. Метод обработки (Вариант 9)</h2>
+                <div class="form-group">
+                    <label for="methodSelect">Выберите алгоритм:</label>
+                    <select id="methodSelect">
+                        <optgroup label="Часть 1. Глобальная пороговая обработка (2 метода)">
+                            <option value="otsu">1.1 Метод Оцу (авто-максимизация межклассовой дисперсии)</option>
+                            <option value="isodata">1.2 Метод Ридлера-Калварда (итеративный ISODATA)</option>
+                        </optgroup>
+                        <optgroup label="Часть 2. Адаптивная пороговая обработка (SAT O(1))">
+                            <option value="adaptive_lecture">2.1 Лекционный метод (среднее в окне − C через SAT)</option>
+                            <option value="adaptive_sauvola">2.2 Метод Сауволы (Sauvola: учет СКО через SAT)</option>
+                        </optgroup>
+                        <optgroup label="Часть 3. Сегментация: точки, линии и перепады">
+                            <option value="seg_points">3.1 Обнаружение изолированных точек (Маска Лапласа)</option>
+                            <option value="seg_lines">3.2 Обнаружение линий (Маски 0°, 45°, 90°, -45°)</option>
+                            <option value="seg_sobel">3.3 Перепады яркости: Оператор Собеля (модуль |G|)</option>
+                            <option value="seg_sobel_dir">3.4 Карта направлений градиента Собеля (Углы цветом HSV)</option>
+                            <option value="seg_canny">3.5 Детектор границ Кэнни (1D+1D Гаусс + субпиксельный NMS)</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <!-- Динамические настройки параметров -->
+                <div id="dynamicParams" class="params-container"></div>
+
+                <div class="action-buttons">
+                    <button id="runBtn" class="btn-primary">Выполнить обработку</button>
+                    <button id="compareBtn" class="btn-secondary">Сравнить методы (Отчет)</button>
+                </div>
+
+                <div class="progress-wrapper">
+                    <div class="progress-label">
+                        <span id="statusText">Готово к работе</span>
+                        <span id="timeText">0.0 мс</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div id="progressBar" class="progress-bar-fill"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="panel-card metrics-card">
+                <h2>4. Метрики алгоритма</h2>
+                <div id="metricsBox" class="metrics-list">
+                    <p>Выберите метод для просмотра параметров расчета.</p>
+                </div>
+            </section>
+        </aside>
+
+        <!-- Правая рабочая область (Холсты До/После, Гистограммы, Пояснения) -->
+        <section class="workspace">
+            <div class="canvases-grid">
+                <div class="canvas-panel">
+                    <div class="canvas-header">
+                        <h3>Исходное изображение («ДО»)</h3>
+                        <span id="srcInfo" class="dim-badge">512 × 384</span>
+                    </div>
+                    <div class="canvas-viewport">
+                        <canvas id="sourceCanvas" width="512" height="384"></canvas>
+                    </div>
+                </div>
+
+                <div class="canvas-panel">
+                    <div class="canvas-header">
+                        <h3>Результат обработки («ПОСЛЕ»)</h3>
+                        <span id="dstInfo" class="dim-badge">Режим</span>
+                    </div>
+                    <div class="canvas-viewport">
+                        <canvas id="resultCanvas" width="512" height="384"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Строка состояния пикселя под курсором -->
+            <div class="pixel-inspector" id="pixelInspector">
+                Наведите курсор на изображение для инспекции пикселя в реальном времени (координаты, яркость «До» и «После», угол градиента).
+            </div>
+
+            <!-- Блок гистограмм До и После -->
+            <div class="histograms-grid">
+                <div class="hist-panel">
+                    <div class="canvas-header">
+                        <h3>Гистограмма «ДО» + Порог / Дисперсия Оцу</h3>
+                        <span class="legend-inline">
+                            <i class="dot dot-blue"></i>Яркость
+                            <i class="dot dot-pink"></i>Дисперсия &sigma;<sub>B</sub><sup>2</sup>(t)
+                            <i class="dot dot-amber"></i>Порог T
+                        </span>
+                    </div>
+                    <canvas id="histBeforeCanvas" width="480" height="150"></canvas>
+                </div>
+
+                <div class="hist-panel">
+                    <div class="canvas-header">
+                        <h3>Гистограмма «ПОСЛЕ»</h3>
+                        <span id="histAfterStats" class="dim-badge">Статистика</span>
+                    </div>
+                    <canvas id="histAfterCanvas" width="480" height="150"></canvas>
+                </div>
+            </div>
+
+            <!-- Блок аналитического отчета и пояснений (30 баллов по условию) -->
+            <div class="report-panel">
+                <h2>Аналитический отчет и теоретические пояснения (Вариант 9)</h2>
+                <div id="comparisonWall" class="comparison-wall hidden"></div>
+                <div id="theoryExplanation" class="theory-content"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Подключение строго по 3 слоям архитектуры из методички -->
+    <!-- Слой 2: Memory & Pixel Access Layer (Buffer Wrapper) -->
+    <script src="js/PixelBuffer.js"></script>
+    <!-- Слой 3: Processing Layer (Чистые математические функции-фильтры + Web Workers) -->
+    <script src="js/ProcessingLayer.js"></script>
+    <!-- Генератор тестовых изображений по варианту -->
+    <script src="js/TestImages.js"></script>
+    <!-- Слой 1: Presentation Layer (UI, канвасы, гистограммы, слайдеры) -->
+    <script src="js/PresentationUI.js"></script>
+</body>
+</html>
