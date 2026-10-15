@@ -3,66 +3,220 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Анализатор графики | Lab 2</title>
+    <title>Анализатор графических форматов | Лабораторная работа №2</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <header class="header">
-            <div class="header-titles">
-                <h2>Мониторинг метаданных</h2>
-                <p class="subtitle">Многопоточное сканирование директорий (до 100 000 файлов)</p>
+    <div class="app-shell">
+        <!-- Верхняя панель -->
+        <header class="topbar">
+            <div class="brand">
+                <div class="brand-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                        <polyline points="21 15 16 10 5 21"></polyline>
+                    </svg>
+                </div>
+                <div>
+                    <h1>Binary Image Inspector <span class="badge-version">Lab #2 Pro</span></h1>
+                    <p class="subtitle">Многопоточный побайтовый парсер заголовков (Web Workers + DataView + Lazy Slicing)</p>
+                </div>
             </div>
-            <label class="btn btn-primary">
-                <input type="file" id="folderInput" webkitdirectory multiple hidden>
-                Выбрать директорию
-            </label>
+
+            <div class="action-buttons">
+                <label class="btn btn-primary" id="uploadLabel">
+                    <input type="file" id="folderInput" webkitdirectory multiple hidden>
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+                    Выбрать папку
+                </label>
+
+                <label class="btn btn-secondary">
+                    <input type="file" id="filesInput" multiple accept=".jpg,.jpeg,.png,.bmp,.gif,.tif,.tiff,.pcx" hidden>
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    Выбрать файлы
+                </label>
+
+                <button class="btn btn-danger" id="stopBtn" disabled title="Мгновенно остановить все рабочие потоки">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" stroke-width="2"></rect></svg>
+                    Остановить
+                </button>
+
+                <button class="btn btn-outline" id="clearBtn" disabled title="Очистить таблицу и сбросить память">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    Очистить
+                </button>
+
+                <button class="btn btn-outline" id="exportCsvBtn" disabled title="Скачать таблицу в CSV">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    Экспорт CSV
+                </button>
+            </div>
         </header>
 
-        <div class="dashboard" id="dashboard">
+        <!-- Дашборд телеметрии -->
+        <section class="dashboard">
             <div class="stat-card">
-                <div class="stat-title">Всего файлов</div>
-                <div class="stat-value" id="statTotal">0</div>
+                <div class="stat-header">
+                    <span class="stat-title">Обработано / Всего</span>
+                    <span class="stat-badge" id="statThreadsBadge">Потоков: 4</span>
+                </div>
+                <div class="stat-value"><span id="statProcessed">0</span> <small class="text-muted">/ <span id="statTotal">0</span></small></div>
+                <div class="stat-subtext" id="statStateText">Ожидание выбора директории...</div>
             </div>
+
             <div class="stat-card">
-                <div class="stat-title">Валидные (OK)</div>
+                <div class="stat-header">
+                    <span class="stat-title">Валидные файлы</span>
+                </div>
                 <div class="stat-value text-success" id="statSuccess">0</div>
+                <div class="stat-subtext">Корректная сигнатура и структура</div>
             </div>
+
             <div class="stat-card">
-                <div class="stat-title">Битые / Ошибки</div>
+                <div class="stat-header">
+                    <span class="stat-title">Повреждены / Подмена</span>
+                </div>
                 <div class="stat-value text-error" id="statErrors">0</div>
+                <div class="stat-subtext">Отсутствует IEND/EOI или ложный Magic</div>
             </div>
+
             <div class="stat-card">
-                <div class="stat-title">Время выполнения</div>
+                <div class="stat-header">
+                    <span class="stat-title">Быстродействие</span>
+                </div>
                 <div class="stat-value" id="statTime">0.00 с</div>
-                <div class="stat-subtext" id="statSpeed">0 ф/сек</div>
+                <div class="stat-subtext"><span id="statSpeed">0</span> файлов/сек (Lazy Loading)</div>
             </div>
-        </div>
-        
-        <div id="progress-wrapper" class="progress-wrapper" style="display: none;">
-            <div class="progress-bar-container">
-                <div id="progressBar" class="progress-bar"></div>
+        </section>
+
+        <!-- Прогресс-бар -->
+        <div id="progressWrapper" class="progress-wrapper" style="display: none;">
+            <div class="progress-info">
+                <span id="progressStatus">Чтение заголовков...</span>
+                <span id="progressPercent">0%</span>
+            </div>
+            <div class="progress-track">
+                <div id="progressBar" class="progress-fill"></div>
             </div>
         </div>
 
-        <div class="table-container">
-            <table id="resultTable">
-                <thead>
-                    <tr>
-                        <th>Имя файла</th>
-                        <th>Размер (px)</th>
-                        <th>Разрешение (DPI)</th>
-                        <th>Глубина цвета</th>
-                        <th>Сжатие</th>
-                        <th>Статус</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody">
-                    <!-- Данные генерируются через JS -->
-                </tbody>
-            </table>
+        <!-- Панель фильтрации и настроек отображения -->
+        <section class="toolbar">
+            <div class="search-box">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" stroke-width="2"></circle><line x1="21" y1="21" x2="16.65" y2="16.65" stroke-width="2"></line></svg>
+                <input type="text" id="searchInput" placeholder="Поиск по имени файла...">
+            </div>
+
+            <div class="filters-group">
+                <div class="control-item">
+                    <label for="statusFilter">Статус:</label>
+                    <select id="statusFilter">
+                        <option value="all">Все файлы</option>
+                        <option value="ok">Только валидные (OK)</option>
+                        <option value="error">Битые / Подмена расширения</option>
+                    </select>
+                </div>
+
+                <div class="control-item">
+                    <label for="formatFilter">Формат:</label>
+                    <select id="formatFilter">
+                        <option value="all">Все форматы</option>
+                        <option value="JPG">JPG / JPEG</option>
+                        <option value="PNG">PNG</option>
+                        <option value="BMP">BMP</option>
+                        <option value="GIF">GIF</option>
+                        <option value="TIF">TIF / TIFF</option>
+                        <option value="PCX">PCX</option>
+                    </select>
+                </div>
+
+                <div class="control-item">
+                    <label for="pageSizeSelect">Показывать строк:</label>
+                    <select id="pageSizeSelect">
+                        <option value="50">50 строк</option>
+                        <option value="100" selected>100 строк</option>
+                        <option value="250">250 строк</option>
+                        <option value="500">500 строк</option>
+                        <option value="1000">1000 строк</option>
+                        <option value="all">Все (осторожно при >10к)</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <!-- Таблица результатов -->
+        <div class="table-card">
+            <div class="table-container">
+                <table id="resultTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">#</th>
+                            <th class="sortable" data-sort="name">Имя файла <span class="sort-indicator">↕</span></th>
+                            <th style="width: 85px;">Формат</th>
+                            <th class="sortable" data-sort="pixels">Размер (px) <span class="sort-indicator">↕</span></th>
+                            <th>Разрешение (DPI)</th>
+                            <th class="sortable" data-sort="depth">Глубина цвета <span class="sort-indicator">↕</span></th>
+                            <th>Сжатие</th>
+                            <th>Доп. параметры (Спецификация)</th>
+                            <th>Статус валидации</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr class="empty-row">
+                            <td colspan="9">
+                                <div class="empty-state">
+                                    <p>Нет загруженных данных. Нажмите <strong>«Выбрать папку»</strong> или перетащите файлы сюда.</p>
+                                    <small>Поддерживаются: JPG, GIF, TIF, BMP, PNG, PCX (до 100 000 файлов)</small>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Пагинация -->
+            <footer class="table-footer">
+                <div class="pagination-info" id="paginationInfo">Показано 0 из 0 записей</div>
+                <div class="pagination-controls">
+                    <button class="btn-page" id="prevPageBtn" disabled>← Назад</button>
+                    <span class="page-indicator" id="pageIndicator">Стр. 1 из 1</span>
+                    <button class="btn-page" id="nextPageBtn" disabled>Вперед →</button>
+                </div>
+            </footer>
         </div>
     </div>
+
+    <!-- Модальное окно детального разбора и предпросмотра -->
+    <div class="modal-backdrop" id="inspectorModal" style="display: none;">
+        <div class="modal-window">
+            <div class="modal-header">
+                <div>
+                    <h3 id="modalTitle">Инспектор файла</h3>
+                    <span class="modal-subtitle" id="modalSubtitle">Детальный побайтовый разбор структуры</span>
+                </div>
+                <button class="modal-close" id="closeModalBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="preview-column">
+                    <div class="image-preview-box" id="modalImageBox">
+                        <img id="modalImage" alt="Предпросмотр" style="display: none;">
+                        <div id="modalNoPreview" class="no-preview">Предпросмотр недоступен</div>
+                    </div>
+                    <div class="hex-box">
+                        <div class="hex-title">Magic Numbers & Заголовок (первые 32 байта в HEX):</div>
+                        <code id="modalHexDump">--</code>
+                    </div>
+                </div>
+                <div class="details-column">
+                    <table class="details-table" id="modalDetailsTable">
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="engine.js"></script>
 </body>
 </html>
