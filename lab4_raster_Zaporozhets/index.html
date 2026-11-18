@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лабораторная работа 4 - Базовые растровые алгоритмы</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <h2>Настройки примитивов</h2>
+            <div class="control-group">
+                <label>Алгоритм:</label>
+                <select id="algoSelect">
+                    <option value="step">Пошаговый (Линия)</option>
+                    <option value="dda">ЦДА (Линия)</option>
+                    <option value="bresenhamLine">Брезенхем (Линия)</option>
+                    <option value="wu">Алгоритм Ву (Сглаженная линия)</option>
+                    <option value="bresenhamCircle">Брезенхем (Окружность)</option>
+                    <option value="castle">Кастл-Питвей (Эллипс)</option>
+                </select>
+            </div>
+            <div id="lineInputs">
+                <div class="coord-inputs">
+                    <div><label>X0:</label><input type="number" id="x0" value="-10"></div>
+                    <div><label>Y0:</label><input type="number" id="y0" value="-5"></div>
+                    <div><label>X1:</label><input type="number" id="x1" value="10"></div>
+                    <div><label>Y1:</label><input type="number" id="y1" value="8"></div>
+                </div>
+            </div>
+            <div id="circleInputs" style="display: none;">
+                <div class="coord-inputs">
+                    <div><label>Xc:</label><input type="number" id="xc" value="0"></div>
+                    <div><label>Yc:</label><input type="number" id="yc" value="0"></div>
+                    <div><label>R:</label><input type="number" id="r" value="12"></div>
+                </div>
+            </div>
+            <div id="ellipseInputs" style="display: none;">
+                <div class="coord-inputs">
+                    <div><label>Xc:</label><input type="number" id="exc" value="0"></div>
+                    <div><label>Yc:</label><input type="number" id="eyc" value="0"></div>
+                    <div><label>Rx:</label><input type="number" id="rx" value="15"></div>
+                    <div><label>Ry:</label><input type="number" id="ry" value="8"></div>
+                </div>
+            </div>
+            <button id="drawBtn">Нарисовать</button>
+            <button id="clearBtn">Очистить сетку</button>
+            
+            <hr>
+            <h2>Управление сеткой</h2>
+            <div class="control-group">
+                <label>Размер пикселя (Масштаб): <span id="scaleVal">20</span>px</label>
+                <input type="range" id="scaleRange" min="5" max="40" value="20">
+            </div>
+            <div class="help-text">
+                <p><b>Привязка координат:</b> Математические целочисленные координаты (X,Y) проецируются на центры дискретных ячеек сетки. Левый нижний угол экрана соответствует логическому минимуму, а центр холста - точке (0,0).</p>
+            </div>
+
+            <hr>
+            <h2>Бенчмарк (Стресс-тест)</h2>
+            <p class="help-text">Генерация 100 000 отрезков (во всех октантах) и 50 000 окружностей. Сравнение производительности ЦДА и Брезенхема.</p>
+            <button id="benchBtn" class="bench-btn">Запустить бенчмарк</button>
+            <div id="benchResults" class="bench-results"></div>
+        </aside>
+        
+        <main class="canvas-container">
+            <canvas id="gridCanvas"></canvas>
+            <canvas id="chartCanvas" width="400" height="200" style="display:none; margin-top:20px;"></canvas>
+        </main>
+    </div>
+    <script src="VirtualGrid.js"></script>
+    <script src="RasterEngine.js"></script>
+    <script src="GridPainter.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
